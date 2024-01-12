@@ -1,62 +1,65 @@
-console.log('hello!')
+const listElement = document.querySelector('ul')
+const tarefaInput = document.querySelector('input');
+const botaoInserir = document.querySelector('button');
 
-const tarefaInput = document.getElementById('tarefa-escrita');
-const botaoInserir = document.getElementById('inserir-tarefa');
-const listaTarefa = document.getElementById('list');
-let contador = 0
+const tarefas = JSON.parse(localStorage.getItem('list_tarefa')) || [];
 
+window.addEventListener('load', mostrarTarefa);
 
-botaoInserir.addEventListener('click', adcionarTarefa)
-tarefaInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        adcionarTarefa();
-    }
-})
+function mostrarTarefa () {
+    listElement.innerHTML = ''
+    for (item of tarefas) {
+        const itemList = document.createElement('li');
+        const itemText = document.createTextNode(item);
 
+        itemList.setAttribute('class', 'mdl-list__item');
 
-function adcionarTarefa () {
-    const tarefaTexto = tarefaInput.value;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('class', 'material-icons');
 
-    //verifique se o texto digitado está vazio;
-    if (tarefaTexto.trim() !== '') {
-        ++contador; 
+        const linkText = document.createTextNode('delete');
+        linkElement.appendChild(linkText);
 
-        const novaTarefa = document.createElement('li');
-        novaTarefa.id = 'item' + contador
-        novaTarefa.innerHTML = `        
-        <a href ='#' id='${contador}' 
-        class="tarefa" onclick='marcarItem(${contador})'> 
-        ${tarefaTexto}
-        </a>     
+        const pos = tarefas.indexOf(item);
+        linkElement.setAttribute('onclick', `removeTarefa(${pos})`);
         
-        <button onclick='deletarItem(${contador})' class="excluir">Excluir</button>
+        itemList.appendChild(itemText);
+        itemList.appendChild(linkElement);
+
+        listElement.appendChild(itemList);
         
-        <div class="line"></div>`;
-        listaTarefa.appendChild(novaTarefa);
-        tarefaInput.value ='';
     }
-
-
-}
-
-function marcarItem(id) {
-    const tarefa = document.getElementById(id);
-    const classe = tarefa.getAttribute('class');
-    console.log(tarefa);
     
-    if (classe == 'tarefa') {
-        tarefa.classList.add ('marcar');
-    } else {
-        tarefa.classList.remove('marcar');
-    }
 }
 
+function addTarefa() {
+    const tarefa = tarefaInput.value;
+    tarefas.push(tarefa);
+    tarefaInput.value = '';
+    mostrarTarefa();
+    salvarLocalStorage ()
 
-
-function deletarItem(id) {     
-    const item = document.getElementById('item' + id)
-    item.parentNode.removeChild(item);
-   
 }
 
+botaoInserir.setAttribute('onclick', 'addTarefa()');
 
+function removeTarefa (pos) {
+   tarefas.splice(pos, 1)
+    /* tarefas.splice(pos, 1) */ // remove o item da posição, segundo argumento define quantos excluir
+    mostrarTarefa()
+    salvarLocalStorage ()
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        addTarefa();
+        } else if (event.key === 'Delete'){
+            removeTarefa();
+        }
+}
+
+tarefaInput.addEventListener('keydown', handleKeyPress);
+
+function salvarLocalStorage () {
+    localStorage.setItem('list_tarefa', JSON.stringify(tarefas))
+}
